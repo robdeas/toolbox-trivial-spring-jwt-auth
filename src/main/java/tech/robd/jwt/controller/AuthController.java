@@ -6,17 +6,45 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+
 @RestController
 public class AuthController {
 
-    @Value("${app.username.regex}")
-    private String usernameRegex;
+    @Value("${app.username1.regex:}")
+    private Optional<String> username1Regex;
+
+    @Value("${app.username1.role:}")
+    private Optional<String> username1Role;
+
+    @Value("${app.username2.regex:}")
+    private Optional<String> username2Regex;
+
+    @Value("${app.username2.role:}")
+    private Optional<String> username2Role;
+
+    @Value("${app.username3.regex:}")
+    private Optional<String> username3Regex;
+
+    @Value("${app.username3.role:}")
+    private Optional<String> username3Role;
+
+    @Value("${app.username4.regex:}")
+    private Optional<String> username4Regex;
+
+    @Value("${app.username4.role:}")
+    private Optional<String> username4Role;
+
 
     @Value("${app.passwordPrefix}")
     private String passwordPrefix;
 
     @Value("${app.passwordSuffix}")
     private String passwordSuffix;
+
+
 
 
     @PostMapping("/authenticate")
@@ -27,8 +55,42 @@ public class AuthController {
                     .body(new ErrorResponse("Unauthorized: Username is required"));
         }
 
+        AtomicReference<String> roleRef = new AtomicReference<>("");
+        AtomicBoolean isUsernameFound = new AtomicBoolean(false);
+
+        username1Regex.ifPresent(regex -> {
+            if (authRequest.username().matches(regex)) {
+                isUsernameFound.set(true);
+                roleRef.set(username1Role.orElse(""));
+            }
+         });
+
+        username2Regex.ifPresent(regex -> {
+            if (authRequest.username().matches(regex)) {
+                isUsernameFound.set(true);
+                roleRef.set(username2Role.orElse(""));
+            }
+        });
+
+        username3Regex.ifPresent(regex -> {
+            if (authRequest.username().matches(regex)) {
+                isUsernameFound.set(true);
+                roleRef.set(username3Role.orElse(""));
+            }
+        });
+
+        username4Regex.ifPresent(regex -> {
+            if (authRequest.username().matches(regex)) {
+                isUsernameFound.set(true);
+                roleRef.set(username4Role.orElse(""));
+            }
+        });
+
+
+        String role = roleRef.get();
+
         // Check if username matches the regex from the config file
-        if (!authRequest.username().matches(usernameRegex)) {
+        if (!isUsernameFound.get()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new ErrorResponse("Unauthorized: Username is Invalid"));
         }
@@ -40,7 +102,7 @@ public class AuthController {
         }
 
         // Generate a token based on the provided username
-        String token = JwtTokenUtil.generateToken(authRequest.username());
+        String token = JwtTokenUtil.generateToken(authRequest.username(), role);
         return ResponseEntity.ok(new AuthResponse(token));
     }
 }
