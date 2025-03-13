@@ -2,6 +2,8 @@ package tech.robd.jwt.filter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.springframework.lang.NonNull;
+import org.springframework.lang.NonNullApi;
 import tech.robd.jwt.util.JwtTokenUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -20,7 +22,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+    protected void doFilterInternal( @NonNull HttpServletRequest request,
+                                     @NonNull HttpServletResponse response,
+                                     @NonNull FilterChain filterChain)
             throws ServletException, IOException {
         String jwt = getJwtFromRequest(request);
 
