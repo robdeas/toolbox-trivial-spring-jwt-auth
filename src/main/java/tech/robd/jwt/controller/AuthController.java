@@ -1,4 +1,6 @@
 package tech.robd.jwt.controller;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import tech.robd.jwt.util.JwtTokenUtil;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,6 +14,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 @RestController
 public class AuthController {
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     @Value("${app.username1.regex:}")
     private Optional<String> username1Regex;
@@ -49,8 +52,10 @@ public class AuthController {
 
     @PostMapping("/authenticate")
     public ResponseEntity<?> authenticate(@RequestBody AuthRequest authRequest) {
+        logger.info("Authentication request received for username: {}", authRequest.username());
         // Check if username is missing or blank
         if (authRequest.username() == null || authRequest.username().trim().isEmpty()) {
+            logger.warn("Authentication failed: username is missing");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new ErrorResponse("Unauthorized: Username is required"));
         }
@@ -103,6 +108,7 @@ public class AuthController {
 
         // Generate a token based on the provided username
         String token = JwtTokenUtil.generateToken(authRequest.username(), role);
+        logger.info("Authentication successful for user '{}'", authRequest.username());
         return ResponseEntity.ok(new AuthResponse(token));
     }
 }

@@ -1,4 +1,6 @@
 package tech.robd.jwt.filter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import tech.robd.jwt.util.JwtTokenUtil;
 import jakarta.servlet.FilterChain;
@@ -15,18 +17,27 @@ import java.io.IOException;
 import java.util.Collections;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+    private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         String jwt = getJwtFromRequest(request);
-        if (StringUtils.hasText(jwt) && JwtTokenUtil.validateToken(jwt)) {
-            String username = JwtTokenUtil.getUsernameFromToken(jwt);
-            // For simplicity, we do not load user details from a service here.
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                    username, null, Collections.emptyList());
-            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        if (StringUtils.hasText(jwt)) {
+            if (JwtTokenUtil.validateToken(jwt)) {
+                String username = JwtTokenUtil.getUsernameFromToken(jwt);
+                logger.debug("Valid JWT token found for user: {}", username);
+                // For simplicity, we do not load user details from a service here.
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                        username, null, Collections.emptyList());
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            } else {
+                logger.warn("Invalid JWT token provided");
+            }
+        } else {
+            logger.debug("No JWT token found in request");
         }
         filterChain.doFilter(request, response);
     }

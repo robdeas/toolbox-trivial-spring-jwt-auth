@@ -2,16 +2,16 @@ package tech.robd.jwt.util;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.crypto.SecretKey;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,10 +19,11 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class JwtTokenUtil {
+    private static final Logger logger = LoggerFactory.getLogger(JwtTokenUtil.class);
 
     private static final long JWT_TOKEN_VALIDITY = 24 * 60 * 60; // 24 hours in seconds
 
-    private static final SecretKey SECRET_KEY  = loadSecretKeyFromFile();
+    private static final SecretKey SECRET_KEY = loadSecretKeyFromFile();
 
     private static SecretKey loadSecretKeyFromFile() {
         try {
@@ -36,7 +37,7 @@ public class JwtTokenUtil {
                     .map(line -> line.replaceAll("\\s+", ""))
                     .collect(Collectors.joining());
 
-            System.out.println("Got key form file");
+            logger.info("JWT secret key loaded from file successfully");
 
             return Keys.hmacShaKeyFor(Decoders.BASE64.decode(keyContent));
         } catch (IOException e) {

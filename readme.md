@@ -46,5 +46,5 @@ You should change these fake values, as while this authentication service sends 
 
 This service is trivial, but could still be useful in its own right in testing. 
 
-I have removed logging, as it will probably just be simpler understand if you add you own when needed.
+It only has simple console logging enabled.
 
